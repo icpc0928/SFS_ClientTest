@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="netty-3.2.2.Final">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/SmartFoxServer_2X/SFS2X_Client/SFS2X_API_Java_v1.7.7/netty-3.2.2.Final.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

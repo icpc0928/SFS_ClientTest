@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="sfs2x-client-core">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/SmartFoxServer_2X/SFS2X_Client/SFS2X_API_Java_v1.7.7/sfs2x-client-core.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
