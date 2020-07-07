@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/ClassicBaseSlotClientLeo.iml" filepath="$PROJECT_DIR$/ClassicBaseSlotClientLeo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/LeoClient.iml" filepath="$PROJECT_DIR$/LeoClient.iml" />
     </modules>
   </component>
 </project>
