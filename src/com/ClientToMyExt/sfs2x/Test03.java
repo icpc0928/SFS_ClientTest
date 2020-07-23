@@ -17,14 +17,27 @@ import java.util.Map;
 public class Test03 {
     SmartFox sfs = new SmartFox();
 
+    int[] gameList = {1};
+    int gameID;
+
+    int betCount = 0;
+    int runCount = 0;
+    int baseCount = 0;
+
+    String startPoint;
+    String userPoint;
+    double totalBet;
+    double totalWinLose;
+    double totalPayout;
+
     String account = "Leo";
     String password = "P@ssw0rd";
 
     Room roomNow;
     String gameRoomName;
 
-    int[] gameList = {1,2,3,4,5};
-    int gameID;
+    int[] lineTotalBet;
+
 
     Test03(){
 
@@ -80,6 +93,24 @@ public class Test03 {
             System.out.println("key: " + key);          //key: reason
             System.out.println(map.get(key).toString());
         }
+
+        if(baseCount != betCount)
+        {
+            System.out.println(account + " is disconnet !!!");
+            System.out.println("=============" + account + "==============");
+            System.out.println(account + ", gameID : " + gameID);
+            System.out.println(account + ", gameRoomName : " + gameRoomName);
+            System.out.println(account + ", startPoint : " + startPoint);
+            System.out.println(account + ", userPoint : " + userPoint);
+            System.out.println(account + ", betCount : " + baseCount);
+//			System.out.println(account + ", totalBet : " + totalBet);
+            System.out.println(account + ", totalPayout : " + totalPayout);
+            System.out.println(account + ", totalWinLose : " + (Double.parseDouble(userPoint) - Double.parseDouble(startPoint)));
+//			System.out.println(account + ", rtp : " + (double) totalPayout / (double) totalBet);
+            System.out.println("=============" + account + "==============");
+            System.out.println("------------------------------------------");
+        }
+
     }
     private void onLogin(BaseEvent event){      //Login成功後回傳login out data
         System.out.println("onLogin()");
@@ -121,10 +152,10 @@ public class Test03 {
                 ISFSObject gameLobbyData = new SFSObject();
                 gameLobbyData.putUtfString("GameID", "Room" + String.valueOf(gameID));
                 gameLobbyData.putUtfString("BetLobby", "1");
-
+                //debug
+                System.out.println("roomNow: " +roomNow.getName());
+                System.out.println("GameID: " + "Room" + gameID);
                 sfs.send(new ExtensionRequest("SlotTableInfo", gameLobbyData, roomNow));
-
-
                 break;
             //進遊戲房
             case "Game" :
@@ -133,12 +164,17 @@ public class Test03 {
 
                 ISFSObject gameData = new SFSObject();
                 sfs.send(new ExtensionRequest("Table", gameData, roomNow));
+                break;
         }
-
-
     }
-    private void onJoinRoomError(BaseEvent event){
 
+    private void onJoinRoomError(BaseEvent event){
+        System.out.println("onJoinRoomError()");
+        Map<String, Object> map = event.getArguments();
+        for(String key : map.keySet()){
+            System.out.println("key: " + key);          //key: reason
+            System.out.println(map.get(key).toString());
+        }
     }
 
     private void onExtResponse(BaseEvent event){
@@ -153,7 +189,9 @@ public class Test03 {
         for(String key : params.getKeys()){
             mapParams.put(key, params.getClass(key));
         }
-        System.out.println("The cmd is: " + cmd);
+
+        System.out.println("The Response cmd is: " + cmd);
+
         switch(cmd){
             case "LobbyInfo" :              //Server端 UserJoinZone傳來的回應
                 System.out.println("LobbyInfo");
@@ -165,11 +203,122 @@ public class Test03 {
 
             case "GameLobbyInfoResult" :    //Server端 GameLobbyInfo傳來的回應
                 System.out.println("GameLobbyInfoResult");
+                System.out.println("GameLobbyName: " + mapParams.get("GameLobbyName").toString());
                 sfs.send(new JoinRoomRequest(mapParams.get("GameLobbyName").toString()));   //進入遊戲房間(我這裡是Room1~Room5)
                 break;
 
+            case "SlotTableInfoResult" :
+                System.out.println("SlotTableInfoResult");
+                sfs.send(new JoinRoomRequest(mapParams.get("TableName").toString()));
+                break;
+
+            case "TableInfo" :
+                System.out.println("TableInfo");
+                startPoint = mapParams.get("UserPoint").toString();
+                userPoint = mapParams.get("UserPoint").toString();
+                play("0");
+                break;
+
+            case "BetResult" :
+                System.out.println("BetResult");
+                if(!mapParams.get("State").toString().equals("0")){
+                    System.out.println(account + "Bet failed");
+                    return;
+                }
+                baseCount++;
+
+                userPoint = mapParams.get("UserPointAfter").toString();
+                totalPayout += Double.parseDouble(mapParams.get("TotalWinPoint").toString());
+
+                play(mapParams.get("GameState").toString());
+                break;
+
+            case "FreeSpinResult" :
+                System.out.println("FreeSpinResult");
+                if(!mapParams.get("State").toString().equals("0")){
+                    System.out.println(account + " FreeSpin failed");
+                    return;
+                }
+
+                userPoint = mapParams.get("UserPointAfter").toString();
+                totalPayout += Double.parseDouble(mapParams.get("TotalWinPoint").toString());
+
+                play(mapParams.get("GameState").toString());
+                break;
+
+            case "BonusResult" :
+                System.out.println("BonusResult");
+                if(!mapParams.get("State").toString().equals("0")){
+                    System.out.println(account + " Bonus failed");
+                    return;
+                }
+
+                userPoint = mapParams.get("UserPointAfter").toString();
+                totalPayout += Double.parseDouble(mapParams.get("TotalWinPoint").toString());
+
+                play(mapParams.get("GameState").toString());
+                break;
+
+
         }
 
+    }
+
+    private void play(String gameState){
+        if(baseCount >= betCount){
+            sfs.disconnect();
+
+            System.out.println("=============" + account + "==============");
+            System.out.println(account + ", gameID : " + gameID);
+            System.out.println(account + ", gameRoomName : " + gameRoomName);
+            System.out.println(account + ", startPoint : " + startPoint);
+            System.out.println(account + ", userPoint : " + userPoint);
+            System.out.println(account + ", betCount : " + baseCount);
+            System.out.println(account + ", totalPayout : " + totalPayout);
+            System.out.println(account + ", totalWinLose : " + (Double.parseDouble(userPoint) - Double.parseDouble(startPoint)));
+            System.out.println("=============" + account + "==============");
+            System.out.println("------------------------------------------");
+            return;
+        }
+
+        switch (gameState){
+            case "0" :
+
+                ISFSObject betData = new SFSObject();
+
+                int betRand = (int) (Math.random() * 8);
+
+                betData.putUtfString("LineBet", String.valueOf(betRand));
+//				totalBet += lineTotalBet[betRand];
+                sfs.send(new ExtensionRequest("Bet", betData, roomNow));
+
+                break;
+
+            case "1" :
+
+                ISFSObject freeData = new SFSObject();
+                sfs.send(new ExtensionRequest("FreeSpin", freeData, roomNow));
+
+                break;
+
+            case "2" :
+
+                ISFSObject bonusData = new SFSObject();
+                bonusData.putUtfString("Option", String.valueOf((int) (Math.random() * 3)));
+                sfs.send(new ExtensionRequest("Bonus", bonusData, roomNow));
+
+                break;
+        }
+    }
+
+    private int[] convertObjectArray(Object[] obj)
+    {
+        int[] array = new int[obj.length];
+
+        for(int i = 0; i < array.length; i++)
+            array[i] = (int) obj[i];
+
+        return array;
     }
 
 }
